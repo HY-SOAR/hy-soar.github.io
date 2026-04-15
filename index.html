@@ -112,12 +112,34 @@
       transform: translateY(-1px);
     }
 
+    .links a.disabled {
+      color: #999;
+      background: #f4f4f4;
+      border-color: var(--border);
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .links a.disabled:hover {
+      color: #999;
+      border-color: var(--border);
+      box-shadow: none;
+      transform: none;
+    }
+
     .links a i, .links a img {
       font-size: 1.1rem;
     }
 
     .links a img {
       height: 18px;
+    }
+
+    .release-note {
+      margin-top: -24px;
+      margin-bottom: 36px;
+      color: var(--text-light);
+      font-size: 0.9rem;
     }
 
     /* Sections */
@@ -410,13 +432,14 @@
         <a href="https://arxiv.org/abs/2604.12617" target="_blank">
           <i class="fa-solid fa-file-pdf"></i> Paper
         </a>
-        <a href="https://github.com/Tencent-Hunyuan/HY-SOAR" target="_blank">
+        <a class="disabled" aria-disabled="true" title="Open source coming soon">
           <i class="fa-brands fa-github"></i> Code
         </a>
         <a href="https://x.com/TencentHunyuan" target="_blank">
           <i class="fa-brands fa-x-twitter"></i> Twitter
         </a>
       </div>
+      <p class="release-note">Open source coming soon.</p>
     </div>
   </section>
 
