@@ -661,7 +661,8 @@
       }
 
       try {
-        const response = await fetch(GOATCOUNTER_TOTAL_URL, { cache: 'no-store' });
+        const counterUrl = `${GOATCOUNTER_TOTAL_URL}?v=${Date.now()}`;
+        const response = await fetch(counterUrl, { cache: 'no-store' });
         if (!response.ok) throw new Error('View counter unavailable');
         const data = await response.json();
         renderViews(formatViewCount(data.count), '', 'ready');
