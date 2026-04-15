@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HY-SOAR: Self-Correction for Optimal Alignment and Refinement in Diffusion Models</title>
   <meta name="description" content="HY-SOAR: A reward-free post-training method for rectified-flow diffusion models that corrects trajectory-level exposure bias.">
+  <link rel="canonical" href="https://hy-soar.github.io/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -350,6 +351,36 @@
       color: var(--primary);
     }
 
+    .site-views {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 6px;
+      color: #999;
+    }
+
+    .site-views__value {
+      min-width: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-light);
+      background: var(--bg);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .site-views__value[data-state="error"] {
+      color: #999;
+    }
+
+    .site-views__note {
+      color: #aaa;
+      font-size: 0.78rem;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .hero { padding: 48px 0 24px; }
@@ -573,11 +604,78 @@
         &copy; 2026 Tencent HY Team &middot;
         <a href="https://github.com/Tencent-Hunyuan/HY-SOAR" target="_blank">GitHub</a> &middot;
         <a href="https://arxiv.org/abs/2604.12617" target="_blank">arXiv</a>
+        <span class="site-views" id="siteViewsWrap" aria-label="Total site views">
+          &middot; Views
+          <span class="site-views__value" id="siteViews" data-state="loading">--</span>
+          <span class="site-views__note" id="siteViewsNote"></span>
+        </span>
       </p>
     </div>
   </footer>
 
   <script>
+    const GOATCOUNTER_CODE = '42xingxing';
+    const GOATCOUNTER_ENDPOINT = `https://${GOATCOUNTER_CODE}.goatcounter.com/count`;
+    const GOATCOUNTER_TOTAL_URL = `https://${GOATCOUNTER_CODE}.goatcounter.com/counter/TOTAL.json`;
+
+    function isLocalPreview() {
+      return ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+    }
+
+    function renderViews(value, note, state) {
+      const wrap = document.getElementById('siteViewsWrap');
+      const views = document.getElementById('siteViews');
+      const noteEl = document.getElementById('siteViewsNote');
+      if (!views || !noteEl) return;
+
+      if (wrap) wrap.hidden = false;
+      views.textContent = value;
+      views.dataset.state = state || 'ready';
+      noteEl.textContent = note || '';
+    }
+
+    function hideViews() {
+      const wrap = document.getElementById('siteViewsWrap');
+      if (wrap) wrap.hidden = true;
+    }
+
+    function formatViewCount(value) {
+      if (typeof value === 'string' && value.trim()) return value;
+      const number = Number(value);
+      if (!Number.isFinite(number)) return '--';
+      return number.toLocaleString('en-US');
+    }
+
+    function loadGoatCounterScript() {
+      const script = document.createElement('script');
+      script.src = 'https://gc.zgo.at/count.js';
+      script.async = true;
+      script.dataset.goatcounter = GOATCOUNTER_ENDPOINT;
+      document.body.appendChild(script);
+    }
+
+    async function loadViewCount() {
+      if (isLocalPreview()) {
+        renderViews('1,024', 'local preview', 'preview');
+        return;
+      }
+
+      try {
+        const response = await fetch(GOATCOUNTER_TOTAL_URL, { cache: 'no-store' });
+        if (!response.ok) throw new Error('View counter unavailable');
+        const data = await response.json();
+        renderViews(formatViewCount(data.count), '', 'ready');
+      } catch (error) {
+        hideViews();
+      }
+    }
+
+    if (!isLocalPreview()) {
+      loadGoatCounterScript();
+    }
+
+    loadViewCount();
+
     function copyBibtex() {
       const text = document.getElementById('bibtex').innerText;
       navigator.clipboard.writeText(text).then(() => {
