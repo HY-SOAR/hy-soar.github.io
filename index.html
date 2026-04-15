@@ -676,6 +676,9 @@
     }
 
     loadViewCount();
+    if (!isLocalPreview()) {
+      setTimeout(loadViewCount, 12000);
+    }
 
     function copyBibtex() {
       const text = document.getElementById('bibtex').innerText;
