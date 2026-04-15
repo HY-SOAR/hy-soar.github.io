@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HY-SOAR: Self-Correction for Optimal Alignment and Refinement in Diffusion Models</title>
+  <meta name="description" content="HY-SOAR: A reward-free post-training method for rectified-flow diffusion models that corrects trajectory-level exposure bias.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --primary: #b5212f;
+      --primary-dark: #8e1a25;
+      --text: #333;
+      --text-light: #666;
+      --bg: #ffffff;
+      --bg-alt: #f8f9fa;
+      --border: #e9ecef;
+      --max-width: 1000px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 80px 0 40px;
+    }
+
+    .hero h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 24px;
+      color: var(--text);
+    }
+
+    .authors {
+      font-size: 1rem;
+      color: var(--text-light);
+      margin-bottom: 8px;
+      line-height: 1.8;
+    }
+
+    .authors a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .authors a:hover {
+      color: var(--primary);
+    }
+
+    .affiliation {
+      font-size: 0.95rem;
+      color: var(--text-light);
+      margin-bottom: 28px;
+    }
+
+    .affiliation img {
+      height: 20px;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+
+    /* Link buttons */
+    .links {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.25s ease;
+      background: var(--bg);
+    }
+
+    .links a:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 2px 12px rgba(181, 33, 47, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .links a i, .links a img {
+      font-size: 1.1rem;
+    }
+
+    .links a img {
+      height: 18px;
+    }
+
+    /* Sections */
+    section {
+      padding: 60px 0;
+    }
+
+    section:nth-child(even) {
+      background: var(--bg-alt);
+    }
+
+    section h2 {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    section h2 .emoji {
+      margin-right: 8px;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: var(--text-light);
+      font-size: 1rem;
+      margin-bottom: 36px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Abstract */
+    .abstract-text {
+      font-size: 1.05rem;
+      line-height: 1.8;
+      text-align: justify;
+      color: var(--text);
+    }
+
+    /* Key Features */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 12px;
+    }
+
+    .feature-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 24px;
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .feature-card .icon {
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 1.6;
+    }
+
+    /* Showcases */
+    .showcase-item {
+      margin-bottom: 48px;
+    }
+
+    .showcase-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .showcase-item h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .showcase-item p {
+      font-size: 0.95rem;
+      color: var(--text-light);
+      margin-bottom: 16px;
+    }
+
+    .showcase-item img {
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Results table */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 24px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    thead {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    thead th {
+      padding: 12px 16px;
+      font-weight: 600;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 10px 16px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr:hover {
+      background: rgba(181, 33, 47, 0.03);
+    }
+
+    tbody tr.highlight {
+      background: rgba(181, 33, 47, 0.06);
+      font-weight: 600;
+    }
+
+    tbody tr.highlight td {
+      color: var(--primary-dark);
+    }
+
+    .result-description {
+      font-size: 0.95rem;
+      color: var(--text);
+      line-height: 1.8;
+      margin-top: 20px;
+    }
+
+    /* Reward curves */
+    .reward-curves {
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .reward-curves img {
+      max-width: 85%;
+      border-radius: 8px;
+      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .reward-description {
+      font-size: 0.95rem;
+      color: var(--text);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* Citation */
+    .citation-block {
+      position: relative;
+      background: #f5f5f5;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 6px 16px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .copy-btn.copied {
+      background: #28a745;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 32px 0;
+      font-size: 0.85rem;
+      color: #999;
+      border-top: 1px solid var(--border);
+    }
+
+    footer a {
+      color: #999;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: var(--primary);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero { padding: 48px 0 24px; }
+      .hero h1 { font-size: 1.6rem; }
+      .features-grid { grid-template-columns: 1fr; }
+      section { padding: 40px 0; }
+      .links a { padding: 8px 14px; font-size: 0.8rem; }
+      .reward-curves img { max-width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1>HY-SOAR: Self-Correction for Optimal Alignment<br>and Refinement in Diffusion Models</h1>
+
+      <div class="authors">
+        Tencent HY Team
+      </div>
+
+      <div class="affiliation">Tencent Hunyuan</div>
+
+      <div class="links">
+        <a href="https://arxiv.org/abs/2604.12617" target="_blank">
+          <i class="fa-solid fa-file-pdf"></i> Paper
+        </a>
+        <a href="https://github.com/Tencent-Hunyuan/HY-SOAR" target="_blank">
+          <i class="fa-brands fa-github"></i> Code
+        </a>
+        <a href="https://x.com/TencentHunyuan" target="_blank">
+          <i class="fa-brands fa-x-twitter"></i> Twitter
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Abstract -->
+  <section>
+    <div class="container">
+      <h2><span class="emoji">📖</span>Abstract</h2>
+      <p class="section-subtitle"></p>
+      <p class="abstract-text">
+        <strong>HY-SOAR</strong> (Self-Correction for Optimal Alignment and Refinement) is a reward-free
+        post-training method for rectified-flow diffusion models. It targets exposure bias in the denoising
+        trajectory: standard SFT trains the denoiser on ideal forward-noising states from real data, while
+        inference conditions on states produced by the model's own earlier predictions. Once an early
+        denoising step drifts, later steps must recover from states that were not directly optimized, so
+        errors can compound across the trajectory.
+      </p>
+      <br>
+      <p class="abstract-text">
+        Instead of waiting for a terminal reward after a full rollout, SOAR teaches the model to correct
+        its own trajectory errors at the timestep where they occur. Given a clean latent, a noise endpoint,
+        and a condition, SOAR: (1)&nbsp;samples an on-trajectory noisy state and performs one stop-gradient CFG
+        rollout step with the current model; (2)&nbsp;re-noises the resulting off-trajectory state toward the same
+        noise endpoint to create auxiliary states; (3)&nbsp;supervises the denoiser with the analytical correction target.
+        This gives SOAR an on-policy, dense, and reward-free training signal.
+      </p>
+    </div>
+  </section>
+
+  <!-- Key Features -->
+  <section>
+    <div class="container">
+      <h2><span class="emoji">✨</span>Key Features</h2>
+      <p class="section-subtitle">SOAR provides a principled, reward-free approach to trajectory-level correction</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="icon">🧭</div>
+          <h3>Exposure-Bias Correction</h3>
+          <p>Directly addresses the mismatch between ground-truth training states and model-induced inference states — the root cause of compounding denoising failures.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🔁</div>
+          <h3>On-Policy Off-Trajectory Supervision</h3>
+          <p>Off-trajectory states are produced by the current model's own rollout, so the training distribution co-evolves with the model instead of staying fixed.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🎯</div>
+          <h3>Reward-Free Dense Objective</h3>
+          <p>Requires no reward model, preference labels, or negative samples. Provides per-timestep correction supervision and avoids terminal-reward credit assignment.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📐</div>
+          <h3>Geometric Correction Target</h3>
+          <p>Re-noising uses the same noise endpoint as the base flow-matching pair, keeping auxiliary states near the original transport ray.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🔧</div>
+          <h3>Compatible Post-Training Stage</h3>
+          <p>The SOAR loss extends the standard flow-matching objective and can replace SFT as a stronger first stage, remaining compatible with later RL alignment.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Showcases -->
+  <section>
+    <div class="container">
+      <h2><span class="emoji">🖼</span>Showcases</h2>
+      <p class="section-subtitle">Visual comparisons of SOAR vs Flow-GRPO vs SFT across different reward objectives</p>
+
+      <div class="showcase-item">
+        <h3>Showcase 1: Aesthetic Reward Optimization</h3>
+        <p>Comparison across training steps, optimizing for aesthetic quality on diverse prompts — historical scenes, fantasy art, and character portraits.</p>
+        <img src="assets/showcase_aesthetic.png" alt="Aesthetic Showcase" loading="lazy">
+      </div>
+
+      <div class="showcase-item">
+        <h3>Showcase 2: CLIPScore Reward Optimization</h3>
+        <p>Comparison on design and poster generation prompts, optimizing for text-image alignment. SOAR demonstrates stronger text rendering and compositional fidelity.</p>
+        <img src="assets/showcase_clipscore.png" alt="CLIPScore Showcase" loading="lazy">
+      </div>
+
+      <div class="showcase-item">
+        <h3>Showcase 3: WebUI / Design Generation</h3>
+        <p>SOAR results on web UI and graphic design generation, showing accurate layout, typography, and visual hierarchy.</p>
+        <img src="assets/showcase_webui.png" alt="WebUI Showcase" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <!-- Evaluation -->
+  <section>
+    <div class="container">
+      <h2><span class="emoji">📊</span>Evaluation</h2>
+      <p class="section-subtitle">Main results on DrawBench and GenEval/OCR test sets</p>
+
+      <p class="result-description" style="margin-bottom: 20px;">
+        Following <a href="https://arxiv.org/abs/2505.05470" target="_blank" style="color:var(--primary);text-decoration:none;">Flow-GRPO</a>,
+        we evaluate image quality and human preference scores on <strong>DrawBench</strong> prompts, and task-specific metrics on the GenEval/OCR test sets.
+        All models are trained at 512&times;512 with cfg=4.5.
+      </p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>#Iter</th>
+              <th>GenEval</th>
+              <th>OCR</th>
+              <th>PickScore</th>
+              <th>ClipScore</th>
+              <th>HPSv2.1</th>
+              <th>Aesthetic</th>
+              <th>ImgRwd</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>SD-XL (1024&sup2;)</td><td>&ndash;</td>
+              <td>0.55</td><td>0.14</td><td>22.42</td><td>0.287</td><td>0.280</td><td>5.60</td><td>0.76</td>
+            </tr>
+            <tr>
+              <td>SD3.5-L (1024&sup2;)</td><td>&ndash;</td>
+              <td>0.71</td><td>0.68</td><td>22.91</td><td>0.289</td><td>0.288</td><td>5.50</td><td>0.96</td>
+            </tr>
+            <tr>
+              <td>FLUX.1-Dev</td><td>&ndash;</td>
+              <td>0.66</td><td>0.59</td><td>22.84</td><td>0.295</td><td>0.274</td><td>5.71</td><td>0.96</td>
+            </tr>
+            <tr>
+              <td>SD3.5-M</td><td>&ndash;</td>
+              <td>0.63</td><td>0.59</td><td>22.34</td><td>0.285</td><td>0.279</td><td>5.36</td><td>0.85</td>
+            </tr>
+            <tr>
+              <td>+ SFT</td><td>10k</td>
+              <td>0.70</td><td>0.64</td><td>22.71</td><td>0.295</td><td>0.284</td><td>5.35</td><td>1.04</td>
+            </tr>
+            <tr class="highlight">
+              <td><strong>+ SOAR (Ours)</strong></td><td><strong>10k</strong></td>
+              <td><strong>0.78</strong></td><td><strong>0.67</strong></td><td><strong>22.86</strong></td>
+              <td><strong>0.295</strong></td><td><strong>0.289</strong></td><td><strong>5.46</strong></td><td><strong>1.09</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="result-description">
+        SOAR raises SD3.5-Medium's GenEval score from 0.70 to 0.78 (+11% relative) and OCR accuracy from 0.64 to 0.67,
+        while simultaneously improving every DrawBench quality and preference metric &mdash; all without any reward model during training.
+      </p>
+
+      <h3 style="margin-top:48px; margin-bottom:12px; font-size:1.15rem;">Reward-Specific Training Dynamics</h3>
+      <p class="reward-description">
+        In head-to-head comparisons on DrawBench Aesthetic Score and ClipScore, SOAR's final scores not only surpass SFT
+        but also outperform Flow-GRPO, which explicitly uses these metrics as its reward signal
+        (Aesthetic: 5.94 vs.&nbsp;SFT 5.74 / Flow-GRPO 5.87; ClipScore: 0.300 vs.&nbsp;SFT 0.297 / Flow-GRPO 0.296).
+      </p>
+      <div class="reward-curves">
+        <img src="assets/reward_curves_seaborn_preview.png" alt="Reward Curves" loading="lazy">
+      </div>
+    </div>
+  </section>
+
+  <!-- Citation -->
+  <section>
+    <div class="container">
+      <h2><span class="emoji">📚</span>Citation</h2>
+      <p class="section-subtitle">If you find HY-SOAR useful in your research, please cite our work</p>
+      <div class="citation-block" id="bibtex">@article{soar2026hysoar,
+  title={HY-SOAR: Self-Correction for Optimal Alignment and Refinement in Diffusion Models},
+  author={Tencent HY Team, You Qin, Linqing Wang, Hao Fei, Roger Zimmermann, Liefeng Bo, Qinglin Lu and Chunyu Wang},
+  journal={arXiv preprint arXiv:2604.12617},
+  year={2026}
+}</div>
+      <div style="text-align:center; margin-top:16px;">
+        <button class="copy-btn" onclick="copyBibtex()" id="copyBtn">
+          <i class="fa-regular fa-copy"></i>&nbsp; Copy BibTeX
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>
+        &copy; 2026 Tencent Hunyuan &middot;
+        <a href="https://github.com/Tencent-Hunyuan/HY-SOAR" target="_blank">GitHub</a> &middot;
+        <a href="https://arxiv.org/abs/2604.12617" target="_blank">arXiv</a>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    function copyBibtex() {
+      const text = document.getElementById('bibtex').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.classList.add('copied');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i>&nbsp; Copied!';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = '<i class="fa-regular fa-copy"></i>&nbsp; Copy BibTeX';
+        }, 2000);
+      });
+    }
+  </script>
+
+</body>
+</html>
