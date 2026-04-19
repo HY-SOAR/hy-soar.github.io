@@ -7,9 +7,8 @@
   <title>HY-SOAR: Self-Correction for Optimal Alignment and Refinement in Diffusion Models</title>
   <meta name="description" content="HY-SOAR: A reward-free post-training method for rectified-flow diffusion models that corrects trajectory-level exposure bias.">
   <link rel="canonical" href="https://hy-soar.github.io/">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="assets/hunyuan-logo.png">
+  <link rel="apple-touch-icon" href="assets/hunyuan-logo.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     :root {
@@ -26,7 +25,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Noto Sans', sans-serif;
+      font-family: Georgia, 'Times New Roman', serif;
       color: var(--text);
       background: var(--bg);
       line-height: 1.7;
@@ -105,6 +104,31 @@
       background: var(--bg);
     }
 
+    .links a.link-report {
+      border-color: #b31b1b;
+      color: #b31b1b;
+    }
+
+    .links a.link-hf {
+      border-color: #ff9d00;
+      color: #8a5a00;
+    }
+
+    .links a.link-code {
+      border-color: #24292f;
+      color: #24292f;
+    }
+
+    .links a.link-twitter {
+      border-color: #000;
+      color: #000;
+    }
+
+    .links a.link-bibtex {
+      border-color: #6c757d;
+      color: #495057;
+    }
+
     .links a:hover {
       border-color: var(--primary);
       color: var(--primary);
@@ -118,13 +142,6 @@
 
     .links a img {
       height: 18px;
-    }
-
-    .release-note {
-      margin-top: -24px;
-      margin-bottom: 36px;
-      color: var(--text-light);
-      font-size: 0.9rem;
     }
 
     /* Sections */
@@ -158,11 +175,30 @@
       margin-right: auto;
     }
 
-    /* Abstract */
-    .abstract-text {
+    /* Overview */
+    .overview {
+      padding-top: 28px;
+    }
+
+    .method-figure {
+      margin: 0 auto 26px;
+      text-align: center;
+    }
+
+    .method-figure img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 2px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .proposal-text {
+      max-width: 900px;
+      margin: 0 auto;
       font-size: 1.05rem;
       line-height: 1.8;
-      text-align: justify;
+      text-align: left;
       color: var(--text);
     }
 
@@ -177,7 +213,7 @@
     .feature-card {
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 8px;
       padding: 28px 24px;
       transition: box-shadow 0.3s ease, transform 0.3s ease;
     }
@@ -398,6 +434,7 @@
       section { padding: 40px 0; }
       .links a { padding: 8px 14px; font-size: 0.8rem; }
       .reward-curves img { max-width: 100%; }
+      .proposal-text { font-size: 1rem; }
     }
   </style>
 </head>
@@ -414,41 +451,37 @@
       </div>
 
       <div class="links">
-        <a href="https://arxiv.org/abs/2604.12617" target="_blank">
-          <i class="fa-solid fa-file-pdf"></i> Paper
+        <a class="link-report" href="https://arxiv.org/abs/2604.12617" target="_blank">
+          <i class="fa-solid fa-file-pdf"></i> Report
         </a>
-        <a href="https://github.com/Tencent-Hunyuan/HY-SOAR" target="_blank">
+        <a class="link-hf" href="https://huggingface.co/papers/2604.12617" target="_blank">
+          <img src="assets/hf-logo.png" alt="" aria-hidden="true"> Hugging Face
+        </a>
+        <a class="link-code" href="https://github.com/Tencent-Hunyuan/HY-SOAR" target="_blank">
           <i class="fa-brands fa-github"></i> Code
         </a>
-        <a href="https://x.com/TencentHunyuan" target="_blank">
+        <a class="link-twitter" href="https://x.com/TencentHunyuan" target="_blank">
           <i class="fa-brands fa-x-twitter"></i> Twitter
         </a>
+        <a class="link-bibtex" href="#bibtex">
+          <i class="fa-solid fa-quote-left"></i> BibTex
+        </a>
       </div>
-      <p class="release-note">Code is now available on GitHub.</p>
     </div>
   </section>
 
-  <!-- Abstract -->
-  <section>
+  <!-- Overview -->
+  <section class="overview">
     <div class="container">
-      <h2><span class="emoji">📖</span>Abstract</h2>
-      <p class="section-subtitle"></p>
-      <p class="abstract-text">
-        <strong>HY-SOAR</strong> (Self-Correction for Optimal Alignment and Refinement) is a reward-free
-        post-training method for rectified-flow diffusion models. It targets exposure bias in the denoising
-        trajectory: standard SFT trains the denoiser on ideal forward-noising states from real data, while
-        inference conditions on states produced by the model's own earlier predictions. Once an early
-        denoising step drifts, later steps must recover from states that were not directly optimized, so
-        errors can compound across the trajectory.
-      </p>
-      <br>
-      <p class="abstract-text">
-        Instead of waiting for a terminal reward after a full rollout, SOAR teaches the model to correct
-        its own trajectory errors at the timestep where they occur. Given a clean latent, a noise endpoint,
-        and a condition, SOAR: (1)&nbsp;samples an on-trajectory noisy state and performs one stop-gradient CFG
-        rollout step with the current model; (2)&nbsp;re-noises the resulting off-trajectory state toward the same
-        noise endpoint to create auxiliary states; (3)&nbsp;supervises the denoiser with the analytical correction target.
-        This gives SOAR an on-policy, dense, and reward-free training signal.
+      <div class="method-figure">
+        <img src="assets/soar_method_final.png" alt="HY-SOAR method overview" width="2230" height="1256" loading="eager">
+      </div>
+      <p class="proposal-text">
+        We propose <strong>HY-SOAR</strong>: a scalable, reward-free post-training framework for trajectory-level
+        self-correction in rectified-flow diffusion models, which targets exposure bias in the denoising trajectory
+        by sampling on-trajectory noisy states, performing one stop-gradient CFG rollout with the current model,
+        re-noising the resulting off-trajectory states toward the same noise endpoint, and supervising the denoiser
+        with analytical correction targets to provide an on-policy, dense, and reward-free training signal.
       </p>
     </div>
   </section>
@@ -462,7 +495,7 @@
         <div class="feature-card">
           <div class="icon">🧭</div>
           <h3>Exposure-Bias Correction</h3>
-          <p>Directly addresses the mismatch between ground-truth training states and model-induced inference states — the root cause of compounding denoising failures.</p>
+          <p>Directly addresses the mismatch between ground-truth training states and model-induced inference states &mdash; the root cause of compounding denoising failures.</p>
         </div>
         <div class="feature-card">
           <div class="icon">🔁</div>
